@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, FlatList, RefreshControl, StyleSheet } from 'react-native';
 import { useDatabase } from '../context/DatabaseContext';
-import { type Item } from '../database/db';
+import type { Item } from '../types/database';
 import { useFocusEffect } from '@react-navigation/native';
 
 export default function ShowScreen() {
