@@ -12,21 +12,26 @@ export async function migrateDbAsync(db: SQLiteDatabase) {
     await (db as any).execAsync?.('PRAGMA journal_mode = WAL;');
   } catch {}
 
- await db.execAsync(`
-    CREATE TABLE IF NOT EXISTS type_exercise (
+  // Drop old tables and recreate with new schema
+  await db.execAsync(`
+    DROP TABLE IF EXISTS exercise;
+    DROP TABLE IF EXISTS training;
+    DROP TABLE IF EXISTS type_exercise;
+    
+    CREATE TABLE type_exercise (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       slug TEXT NOT NULL
     );
 
-    CREATE TABLE IF NOT EXISTS training (
+    CREATE TABLE training (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date_before TEXT,
       date_after TEXT,
       restlesness INTEGER
     );
 
-    CREATE TABLE IF NOT EXISTS exercise (
+    CREATE TABLE exercise (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT,
       weight REAL,
@@ -84,10 +89,11 @@ export async function addExercise(db: SQLiteDatabase, exercise: Exercise) {
 
 
 export async function getExercisesByTraining(db: SQLiteDatabase, trainingId: number): Promise<Exercise[]> {
-    return await db.getAllAsync<Exercise>(
+    const result = await db.getAllAsync<Exercise>(
         `SELECT * FROM exercise WHERE training_id = ?`,
         [trainingId]
     );
+    return result ?? [];
 };
 
 export async function addTraining(db: SQLiteDatabase, training: Training) {
