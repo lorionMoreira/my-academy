@@ -1,5 +1,5 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
-import type { Item, Exercise, TypeTraining, Training } from '../types/database';
+import type { Item, Exercise, TypeExercise, Training } from '../types/database';
 
 export const DB_NAME = 'my_academy.db';
 
@@ -13,19 +13,17 @@ export async function migrateDbAsync(db: SQLiteDatabase) {
   } catch {}
 
  await db.execAsync(`
-    CREATE TABLE IF NOT EXISTS type_training (
+    CREATE TABLE IF NOT EXISTS type_exercise (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      hardness INTEGER
+      slug TEXT NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS training (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date_before TEXT,
       date_after TEXT,
-      restlesness INTEGER,
-      type_training_id INTEGER,
-      FOREIGN KEY(type_training_id) REFERENCES type_training(id)
+      restlesness INTEGER
     );
 
     CREATE TABLE IF NOT EXISTS exercise (
@@ -33,8 +31,10 @@ export async function migrateDbAsync(db: SQLiteDatabase) {
       name TEXT,
       weight REAL,
       repetitions INTEGER,
-      type_training_id INTEGER,
-      FOREIGN KEY(type_training_id) REFERENCES type_training(id)
+      training_id INTEGER,
+      type_exercise_id INTEGER,
+      FOREIGN KEY(training_id) REFERENCES training(id),
+      FOREIGN KEY(type_exercise_id) REFERENCES type_exercise(id)
     );
   `);
 
@@ -59,49 +59,70 @@ export async function deleteItemAsync(db: SQLiteDatabase, id: number) {
   await db.runAsync?.('DELETE FROM items WHERE id = ?;', [id]);
 }
 
-export async function addTypeTraining(db: SQLiteDatabase,name: string, hardness: number) {
+export async function addTypeExercise(db: SQLiteDatabase, name: string, slug: string) {
   await db.runAsync(
-    `INSERT INTO type_training (name, hardness) VALUES (?, ?)`,
-    [name, hardness]
+    `INSERT INTO type_exercise (name, slug) VALUES (?, ?)`,
+    [name, slug]
   );
   // return inserted id
   const rows = await db.getAllAsync?.<{ id: number }>('SELECT last_insert_rowid() as id;');
   return rows && rows[0] ? rows[0].id : null;
 };
 
-export async function getTypeTrainings(db: SQLiteDatabase): Promise<TypeTraining[]> {
-    const rows = await db.getAllAsync?.<TypeTraining>(
-        'SELECT * FROM type_training'
+export async function getTypeExercises(db: SQLiteDatabase): Promise<TypeExercise[]> {
+    const rows = await db.getAllAsync?.<TypeExercise>(
+        'SELECT * FROM type_exercise'
     );
     return rows;
 }
 
 export async function addExercise(db: SQLiteDatabase, exercise: Exercise) {
-  await db.runAsync?.(`INSERT INTO exercise (name, weight, repetitions, type_training_id)
-       VALUES (?, ?, ?, ?)`, 
-       [exercise.name, exercise.weight, exercise.repetitions, exercise.type_training_id]);
+  await db.runAsync?.(`INSERT INTO exercise (name, weight, repetitions, training_id, type_exercise_id)
+       VALUES (?, ?, ?, ?, ?)`, 
+       [exercise.name, exercise.weight, exercise.repetitions, exercise.training_id, exercise.type_exercise_id]);
 }
 
 
-export async function getExercisesByTypeTraining(db: SQLiteDatabase,typeTrainingId: number): Promise<Exercise[]> {
+export async function getExercisesByTraining(db: SQLiteDatabase, trainingId: number): Promise<Exercise[]> {
     return await db.getAllAsync<Exercise>(
-        `SELECT * FROM exercise WHERE type_training_id = ?`,
-        [typeTrainingId]
+        `SELECT * FROM exercise WHERE training_id = ?`,
+        [trainingId]
     );
 };
 
 export async function addTraining(db: SQLiteDatabase, training: Training) {
     await db.runAsync(
-        `INSERT INTO training (date_before, date_after, restlesness, type_training_id)
-        VALUES (?, ?, ?, ?)`,
-        [training.date_before, training.date_after, training.restlesness, training.type_training_id]
+        `INSERT INTO training (date_before, date_after, restlesness)
+        VALUES (?, ?, ?)`,
+        [training.date_before, training.date_after, training.restlesness]
     );
+    // return inserted id
+    const rows = await db.getAllAsync?.<{ id: number }>('SELECT last_insert_rowid() as id;');
+    return rows && rows[0] ? rows[0].id : null;
 };
 
 export async function getTrainings (db: SQLiteDatabase): Promise<Training[]> {
     return await db.getAllAsync<Training>(`
-        SELECT training.*, type_training.name AS type_training_name
-        FROM training
-        JOIN type_training ON type_training.id = training.type_training_id
+        SELECT * FROM training
     `);
+};
+
+export async function clearAll(db: SQLiteDatabase) {
+  // Delete all rows from the tables
+  await db.runAsync('DELETE FROM exercise;');
+  await db.runAsync('DELETE FROM training;');
+  await db.runAsync('DELETE FROM type_exercise;');
+  // If items table exists, clear it too (legacy)
+  try {
+    await db.runAsync('DELETE FROM items;');
+  } catch {}
+}
+
+export async function clearAllData(db: SQLiteDatabase) {
+  await db.execAsync(`
+    DELETE FROM training;
+    DELETE FROM exercise;
+    DELETE FROM type_exercise;
+    DELETE FROM items;
+  `);
 };

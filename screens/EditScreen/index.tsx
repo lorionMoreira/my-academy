@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Button, Alert } from 'react-native';
-import { useDatabase } from '../context/DatabaseContext';
+import { useDatabase } from '../../context/DatabaseContext';
+import { styles } from './styles';
 
 export default function EditScreen({ navigation }: any) {
   const { getItems, updateItem } = useDatabase();
@@ -18,8 +19,8 @@ export default function EditScreen({ navigation }: any) {
   }
 
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-      <Text style={{ fontSize: 18, fontWeight: '600' }}>Edit Screen</Text>
+    <View style={styles.container}>
+      <Text style={styles.heading}>Edit Screen</Text>
       <Text>Tap the button to update the most recent item.</Text>
       <Button title="Update latest item" onPress={handleUpdateLatest} />
       <Button title="Go to Add Home" onPress={() => navigation.navigate('Add' as any)} />

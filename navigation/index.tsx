@@ -6,8 +6,11 @@ import { COLORS, PALETTE, TABLE_COLORS, TABLE_PALETTE } from '../constants/color
 import { MaterialIcons } from '@expo/vector-icons';
 import HomeScreen from '../screens/HomeScreen';
 import DetailsScreen from '../screens/DetailsScreen';
+import AddExercisesScreen from '../screens/AddExercisesScreen';
+import AddTypeExerciseScreen from '../screens/AddTypeExerciseScreen';
 import EditScreen from '../screens/EditScreen';
 import ShowScreen from '../screens/ShowScreen';
+import DevScreen from '../screens/DevScreen';
 import type { RootTabParamList, AddStackParamList } from '../types/navigation';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -22,6 +25,8 @@ function AddStackScreen() {
       }}
     >
       <AddStack.Screen name="Home" component={HomeScreen} />
+      <AddStack.Screen name="AddExercises" component={AddExercisesScreen} />
+      <AddStack.Screen name="AddTypeExercise" component={AddTypeExerciseScreen} />
       <AddStack.Screen name="Details" component={DetailsScreen} />
     </AddStack.Navigator>
   );
@@ -37,10 +42,12 @@ export default function Navigation() {
             
             if (route.name === 'Add') {
               iconName = 'add-circle';
-            } else if (route.name === 'Edit') {
+            } else if (route.name === 'Treino') { // treino - clicar para desparar o relogio e falar que foi
               iconName = 'edit';
-            } else if (route.name === 'Show') {
+            } else if (route.name === 'Lista') { // Lista - mostrar a lista 
               iconName = 'visibility';
+            } else if (route.name === 'Dev') {
+              iconName = 'build';
             }
 
             return <MaterialIcons name={iconName} size={size} color={color} />;
@@ -51,8 +58,10 @@ export default function Navigation() {
         initialRouteName="Add"
       >
         <Tab.Screen name="Add" component={AddStackScreen} />
-        <Tab.Screen name="Edit" component={EditScreen} />
-        <Tab.Screen name="Show" component={ShowScreen} />
+        <Tab.Screen name="Treino" component={EditScreen} />
+        <Tab.Screen name="Lista" component={ShowScreen} />
+        <Tab.Screen name="Dev" component={DevScreen} />
+
       </Tab.Navigator>
     </NavigationContainer>
   );

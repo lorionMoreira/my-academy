@@ -1,7 +1,7 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useSQLiteContext } from 'expo-sqlite';
-import { addItemAsync, getItemsAsync, updateItemAsync, deleteItemAsync, addTypeTraining, getTypeTrainings, addExercise, getExercisesByTypeTraining, addTraining, getTrainings } from '../database/db';
-import type { Item, TypeTraining, Exercise, Training } from '../types/database';
+import { addItemAsync, getItemsAsync, updateItemAsync, deleteItemAsync, addTypeExercise, getTypeExercises, addExercise, getExercisesByTraining, addTraining, getTrainings, clearAll } from '../database/db';
+import type { Item, TypeExercise, Exercise, Training } from '../types/database';
 
 interface DatabaseContextType {
   addItem: (title: string) => Promise<void>;
@@ -10,12 +10,15 @@ interface DatabaseContextType {
   deleteItem: (id: number) => Promise<void>;
 
   // Training-related
-  addTypeTraining: (name: string, hardness: number) => Promise<number | null>;
-  getTypeTrainings: () => Promise<TypeTraining[]>;
+  addTypeExercise: (name: string, slug: string) => Promise<number | null>;
+  getTypeExercises: () => Promise<TypeExercise[]>;
   addExercise: (exercise: Exercise) => Promise<void>;
-  getExercisesByTypeTraining: (typeTrainingId: number) => Promise<Exercise[]>;
-  addTraining: (training: Training) => Promise<void>;
+  getExercisesByTraining: (trainingId: number) => Promise<Exercise[]>;
+  addTraining: (training: Training) => Promise<number | null>;
   getTrainings: () => Promise<Training[]>;
+  
+  // Dev utilities
+  clearAll: () => Promise<void>;
 }
 
 const DatabaseContext = createContext<DatabaseContextType | undefined>(undefined);
@@ -36,23 +39,26 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     deleteItem: async (id: number) => {
       await deleteItemAsync(db, id);
     },
-    addTypeTraining: async (name: string, hardness: number) => {
-      return await addTypeTraining(db, name, hardness);
+    addTypeExercise: async (name: string, slug: string) => {
+      return await addTypeExercise(db, name, slug);
     },
-    getTypeTrainings: async () => {
-      return await getTypeTrainings(db) ?? [];
+    getTypeExercises: async () => {
+      return await getTypeExercises(db) ?? [];
     },
     addExercise: async (exercise: Exercise) => {
       await addExercise(db, exercise);
     },
-    getExercisesByTypeTraining: async (typeTrainingId: number) => {
-      return await getExercisesByTypeTraining(db, typeTrainingId) ?? [];
+    getExercisesByTraining: async (trainingId: number) => {
+      return await getExercisesByTraining(db, trainingId) ?? [];
     },
     addTraining: async (training: Training) => {
-      await addTraining(db, training);
+      return await addTraining(db, training);
     },
     getTrainings: async () => {
       return await getTrainings(db) ?? [];
+    },
+    clearAll: async () => {
+      await clearAll(db);
     },
   };
 
