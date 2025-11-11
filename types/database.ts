@@ -9,13 +9,14 @@ export interface Exercise {
   name: string;
   weight: number;
   repetitions: number;
-  type_training_id: number;
+  training_id: number;
+  type_exercise_id: number;
 }
 
-export interface TypeTraining {
+export interface TypeExercise {
   id?: number;
   name: string;
-  hardness: number;
+  slug: string; 
 }
 
 export interface Training {
@@ -23,5 +24,4 @@ export interface Training {
   date_before: string;
   date_after: string;
   restlesness: number; //dormi
-  type_training_id: number;
 }
