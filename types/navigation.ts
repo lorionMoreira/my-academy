@@ -5,6 +5,7 @@ export type AddStackParamList = {
   Details: undefined;
   AddExercises: undefined;
   AddTypeExercise: undefined;
+  EditPage: { exerciseId: number };
 };
 
 export type RootTabParamList = {

@@ -5,7 +5,7 @@ import type { Item } from '../../types/database';
 import { useFocusEffect } from '@react-navigation/native';
 import { styles } from './styles';
 
-export default function ShowScreen() {
+export default function ListaScreen() {
   const { getItems } = useDatabase();
   const [items, setItems] = React.useState<Item[]>([]);
   const [refreshing, setRefreshing] = React.useState(false);

@@ -57,44 +57,59 @@ export default function HomeScreen({ navigation }: any) {
     }, [])
   );
 
+  const handleEditExercise = (exercise: Exercise) => {
+    navigation.navigate('EditPage', { exerciseId: exercise.id });
+  };
+
+  const handleEditTraining = (trainingId: number) => {
+    // TODO: Navigate to edit training page
+    console.log('Edit training:', trainingId);
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.heading}>List of Exercises</Text>
 
       {trainings.length > 0 ? (
-        <View style={{ width: '100%', marginBottom: 12 }}>
-          {trainings.map((tr) => (
-            <View key={String(tr.id)}>
-              {tr.exercises && tr.exercises.length > 0 ? (
-                tr.exercises.map((exercise) => (
-                  <View key={String(exercise.id)} style={styles.exerciseCard}>
-                    {/* Left side - Edit and Delete icons */}
-                    <View style={styles.iconsContainer}>
-                      <TouchableOpacity style={styles.iconButton}>
-                        <MaterialIcons name="edit" size={20} color="#007AFF" />
-                      </TouchableOpacity>
-                      <TouchableOpacity style={styles.iconButton}>
-                        <MaterialIcons name="close" size={20} color="#dc3545" />
-                      </TouchableOpacity>
-                    </View>
+        <View style={styles.exercisesContainer}>
+          {trainings.map((training) => (
+            <View key={String(training.id)} style={styles.trainingGroup}>
+              {/* Training header with edit button */}
+              <View style={styles.trainingHeader}>
+                <Text style={styles.trainingTitle}>
+                  Training - {training.id}
+                </Text>
+                <TouchableOpacity 
+                  style={styles.editButton}
+                  onPress={() => handleEditTraining(training.id as number)}
+                >
+                  <MaterialIcons name="edit" size={20} color="#6c757d" />
+                </TouchableOpacity>
+              </View>
 
-                    {/* Center - Exercise details */}
+              {/* Exercises for this training */}
+              {training.exercises && training.exercises.length > 0 ? (
+                training.exercises.map((exercise, index) => (
+                  <TouchableOpacity 
+                    key={String(exercise.id)} 
+                    style={styles.exerciseRow}
+                    onPress={() => handleEditExercise(exercise)}
+                    activeOpacity={0.7}
+                  >
+                    {/* Number */}
+                    <Text style={styles.exerciseNumber}>{index + 1}.</Text>
+
+                    {/* Exercise details */}
                     <View style={styles.exerciseDetails}>
                       <Text style={styles.exerciseName}>{exercise.name}</Text>
-                      <Text style={styles.exerciseWeight}>{exercise.weight} kg</Text>
+                      <Text style={styles.exerciseWeight}>
+                        {exercise.weight} kg × {exercise.repetitions}
+                      </Text>
                     </View>
-
-                    {/* Right side - Repetitions */}
-                    <View style={styles.repsContainer}>
-                      <Text style={styles.repsText}>{exercise.repetitions}</Text>
-                      <Text style={styles.repsLabel}>reps</Text>
-                    </View>
-                  </View>
+                  </TouchableOpacity>
                 ))
               ) : (
-                <Text style={{ marginBottom: 8, color: '#999' }}>
-                  Training #{tr.id} has no exercises
-                </Text>
+                <Text style={styles.noExercisesText}>No exercises yet</Text>
               )}
             </View>
           ))}
@@ -105,7 +120,9 @@ export default function HomeScreen({ navigation }: any) {
 
       <View style={{ width: '100%', height: 1, backgroundColor: '#b63131ff', marginBottom: 12 }} />
 
-      <Button title="Add Training" onPress={() => navigation.navigate('AddExercises')} />
+      <View style={{ width: '100%' }}>
+        <Button title="Add Training" onPress={() => navigation.navigate('AddExercises')} />
+      </View>
     </ScrollView>
   );
 }

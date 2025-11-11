@@ -8,8 +8,9 @@ import HomeScreen from '../screens/HomeScreen';
 import DetailsScreen from '../screens/DetailsScreen';
 import AddExercisesScreen from '../screens/AddExercisesScreen';
 import AddTypeExerciseScreen from '../screens/AddTypeExerciseScreen';
-import EditScreen from '../screens/EditScreen';
-import ShowScreen from '../screens/ShowScreen';
+import EditPageScreen from '../screens/EditPageScreen';
+import TreinoScreen from '../screens/TreinoScreen';
+import ListaScreen from '../screens/ListaScreen';
 import DevScreen from '../screens/DevScreen';
 import type { RootTabParamList, AddStackParamList } from '../types/navigation';
 
@@ -27,6 +28,7 @@ function AddStackScreen() {
       <AddStack.Screen name="Home" component={HomeScreen} />
       <AddStack.Screen name="AddExercises" component={AddExercisesScreen} />
       <AddStack.Screen name="AddTypeExercise" component={AddTypeExerciseScreen} />
+      <AddStack.Screen name="EditPage" component={EditPageScreen} />
       <AddStack.Screen name="Details" component={DetailsScreen} />
     </AddStack.Navigator>
   );
@@ -58,8 +60,8 @@ export default function Navigation() {
         initialRouteName="Add"
       >
         <Tab.Screen name="Add" component={AddStackScreen} />
-        <Tab.Screen name="Treino" component={EditScreen} />
-        <Tab.Screen name="Lista" component={ShowScreen} />
+        <Tab.Screen name="Treino" component={TreinoScreen} />
+        <Tab.Screen name="Lista" component={ListaScreen} />
         <Tab.Screen name="Dev" component={DevScreen} />
 
       </Tab.Navigator>

@@ -3,7 +3,7 @@ import { View, Text, Button, Alert } from 'react-native';
 import { useDatabase } from '../../context/DatabaseContext';
 import { styles } from './styles';
 
-export default function EditScreen({ navigation }: any) {
+export default function TreinoScreen({ navigation }: any) {
   const { getItems, updateItem } = useDatabase();
 
   async function handleUpdateLatest() {
