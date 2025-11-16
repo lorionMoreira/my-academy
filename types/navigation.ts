@@ -3,9 +3,14 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 export type AddStackParamList = {
   Home: undefined;
   Details: undefined;
-  AddExercises: undefined;
+  AddExercises: { trainingId?: number } | undefined;
   AddTypeExercise: undefined;
   EditPage: { exerciseId: number };
+};
+
+export type TreinoStackParamList = {
+  TreinoHome: undefined;
+  MyTraining: { trainingId: number; historyId: number };
 };
 
 export type RootTabParamList = {

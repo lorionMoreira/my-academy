@@ -17,6 +17,7 @@ export async function migrateDbAsync(db: SQLiteDatabase) {
     DROP TABLE IF EXISTS exercise;
     DROP TABLE IF EXISTS training;
     DROP TABLE IF EXISTS type_exercise;
+    DROP TABLE IF EXISTS training_history;
     
     CREATE TABLE type_exercise (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -28,7 +29,8 @@ export async function migrateDbAsync(db: SQLiteDatabase) {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date_before TEXT,
       date_after TEXT,
-      restlesness INTEGER
+      restlesness INTEGER,
+      toughness INTEGER
     );
 
     CREATE TABLE exercise (
@@ -40,6 +42,13 @@ export async function migrateDbAsync(db: SQLiteDatabase) {
       type_exercise_id INTEGER,
       FOREIGN KEY(training_id) REFERENCES training(id),
       FOREIGN KEY(type_exercise_id) REFERENCES type_exercise(id)
+    );
+
+    CREATE TABLE training_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      training_id INTEGER,
+      date TEXT NOT NULL,
+      FOREIGN KEY(training_id) REFERENCES training(id)
     );
   `);
 
@@ -96,6 +105,18 @@ export async function getExercisesByTraining(db: SQLiteDatabase, trainingId: num
     return result ?? [];
 };
 
+export async function updateExercise(db: SQLiteDatabase, id: number, exercise: Partial<Exercise>) {
+  const { name, weight, repetitions, type_exercise_id } = exercise;
+  await db.runAsync?.(
+    `UPDATE exercise SET name = ?, weight = ?, repetitions = ?, type_exercise_id = ? WHERE id = ?`,
+    [name ?? '', weight ?? 0, repetitions ?? 0, type_exercise_id ?? 0, id]
+  );
+}
+
+export async function deleteExercise(db: SQLiteDatabase, id: number) {
+  await db.runAsync?.('DELETE FROM exercise WHERE id = ?;', [id]);
+}
+
 export async function addTraining(db: SQLiteDatabase, training: Training) {
     await db.runAsync(
         `INSERT INTO training (date_before, date_after, restlesness)
@@ -112,6 +133,23 @@ export async function getTrainings (db: SQLiteDatabase): Promise<Training[]> {
         SELECT * FROM training
     `);
 };
+
+export async function getTrainingById(db: SQLiteDatabase, id: number): Promise<Training | null> {
+    const result = await db.getAllAsync<Training>(
+        'SELECT * FROM training WHERE id = ?',
+        [id]
+    );
+    return result && result.length > 0 ? result[0] : null;
+}
+
+export async function addTrainingHistory(db: SQLiteDatabase, trainingId: number, date: string) {
+    await db.runAsync(
+        'INSERT INTO training_history (training_id, date) VALUES (?, ?)',
+        [trainingId, date]
+    );
+    const rows = await db.getAllAsync?.<{ id: number }>('SELECT last_insert_rowid() as id;');
+    return rows && rows[0] ? rows[0].id : null;
+}
 
 export async function clearAll(db: SQLiteDatabase) {
   // Delete all rows from the tables

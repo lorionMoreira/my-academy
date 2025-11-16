@@ -62,8 +62,7 @@ export default function HomeScreen({ navigation }: any) {
   };
 
   const handleEditTraining = (trainingId: number) => {
-    // TODO: Navigate to edit training page
-    console.log('Edit training:', trainingId);
+    navigation.navigate('AddExercises', { trainingId });
   };
 
   return (

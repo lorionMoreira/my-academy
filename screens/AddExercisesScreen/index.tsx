@@ -4,13 +4,22 @@ import { useFocusEffect } from '@react-navigation/native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { useDatabase } from '../../context/DatabaseContext';
 import { COLORS, PALETTE, TABLE_COLORS, TABLE_PALETTE } from '../../constants/colors';  
-import type { TypeExercise } from '../../types/database';
+import type { TypeExercise, Exercise } from '../../types/database';
 import { styles } from './styles';
 
-type ExerciseRow = { name: string; weight: string; repetitions: string; type_exercise_id: number };
+type ExerciseRow = { 
+  id?: number; // Include id for edit mode
+  name: string; 
+  weight: string; 
+  repetitions: string; 
+  type_exercise_id: number 
+};
 
-export default function AddExercisesScreen({ navigation }: any) {
-  const { getTypeExercises, addExercise, addTraining } = useDatabase();
+export default function AddExercisesScreen({ route, navigation }: any) {
+  const { trainingId } = route.params || {};
+  const isEditMode = !!trainingId;
+  
+  const { getTypeExercises, addExercise, updateExercise, deleteExercise, addTraining, getExercisesByTraining } = useDatabase();
   const [types, setTypes] = useState<TypeExercise[]>([]);
   const [savedExercises, setSavedExercises] = useState<ExerciseRow[]>([]);
   
@@ -37,8 +46,21 @@ export default function AddExercisesScreen({ navigation }: any) {
         if (t && t.length > 0 && !selectedTypeId) {
           setSelectedTypeId(t[0].id as number);
         }
+        
+        // If in edit mode, load existing exercises
+        if (isEditMode && trainingId) {
+          const exercises = await getExercisesByTraining(trainingId);
+          const exerciseRows: ExerciseRow[] = exercises.map(ex => ({
+            id: ex.id,
+            name: ex.name || '',
+            weight: String(ex.weight || 0),
+            repetitions: String(ex.repetitions || 0),
+            type_exercise_id: ex.type_exercise_id || (t && t.length > 0 ? t[0].id as number : 0),
+          }));
+          setSavedExercises(exerciseRows);
+        }
       })();
-    }, [getTypeExercises])
+    }, [getTypeExercises, isEditMode, trainingId])
   );
 
   // Handle exercise selection from dropdown
@@ -81,6 +103,7 @@ export default function AddExercisesScreen({ navigation }: any) {
     }
 
     const updatedExercise: ExerciseRow = {
+      id: savedExercises[editingIndex].id, // Preserve the id
       name: exerciseName.trim(),
       weight: exerciseWeight,
       repetitions: exerciseReps,
@@ -89,7 +112,7 @@ export default function AddExercisesScreen({ navigation }: any) {
 
     setSavedExercises((prev) => prev.map((ex, idx) => idx === editingIndex ? updatedExercise : ex));
     
-    Alert.alert('Success', 'Exercise updated');
+    Alert.alert('Success', 'Exercise updated in list');
     cancelEdit();
   };
 
@@ -149,37 +172,70 @@ export default function AddExercisesScreen({ navigation }: any) {
       return;
     }
 
-    // First create training record and get its ID
-    const trainingId = await addTraining({
-      date_before: '0',
-      date_after: '0',
-      restlesness:  0,
-    });
-
-    if (!trainingId) {
-      Alert.alert('Error', 'Failed to create training');
-      return;
-    }
-
-    // Then persist exercises with training_id
-    for (const ex of savedExercises) {
-      await addExercise({
-        name: ex.name,
-        weight: parseFloat(ex.weight) || 0,
-        repetitions: parseInt(ex.repetitions || '0', 10) || 0,
-        training_id: trainingId,
-        type_exercise_id: ex.type_exercise_id,
+    if (isEditMode && trainingId) {
+      // Edit mode: update existing exercises or add new ones
+      for (const ex of savedExercises) {
+        if (ex.id) {
+          // Exercise has an ID, update it
+          await updateExercise(ex.id, {
+            name: ex.name,
+            weight: parseFloat(ex.weight) || 0,
+            repetitions: parseInt(ex.repetitions || '0', 10) || 0,
+            type_exercise_id: ex.type_exercise_id,
+          });
+        } else {
+          // No ID, this is a new exercise
+          await addExercise({
+            name: ex.name,
+            weight: parseFloat(ex.weight) || 0,
+            repetitions: parseInt(ex.repetitions || '0', 10) || 0,
+            training_id: trainingId,
+            type_exercise_id: ex.type_exercise_id,
+          });
+        }
+      }
+      
+      Alert.alert('Saved', 'Training exercises updated');
+      setSavedExercises([]);
+      navigation.navigate('Home');
+    } else {
+      // Add mode: create new training first
+      const newTrainingId = await addTraining({
+        date_before: '0',
+        date_after: '0',
+        restlesness:  0,
+        toughness: 0
       });
-    }
 
-    Alert.alert('Saved', 'Exercises and training saved');
-    setSavedExercises([]);
-    navigation.navigate('Home');
+      if (!newTrainingId) {
+        Alert.alert('Error', 'Failed to create training');
+        return;
+      }
+
+      // Then persist exercises with training_id
+      for (const ex of savedExercises) {
+        await addExercise({
+          name: ex.name,
+          weight: parseFloat(ex.weight) || 0,
+          repetitions: parseInt(ex.repetitions || '0', 10) || 0,
+          training_id: newTrainingId,
+          type_exercise_id: ex.type_exercise_id,
+        });
+      }
+
+      Alert.alert('Saved', 'Exercises and training saved');
+      setSavedExercises([]);
+      navigation.navigate('Home');
+    }
   }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ flexGrow: 1 }}>
       <View style={{ flex: 1 }}>
+
+      <Text style={styles.heading}>
+        {isEditMode ? `Edit Training #${trainingId}` : 'Add New Training'}
+      </Text>
 
       {types.length === 0 && (
         <View style={{ marginBottom: 12 }}>
@@ -272,7 +328,9 @@ export default function AddExercisesScreen({ navigation }: any) {
       {/* Footer with action buttons */}
       <View style={styles.footer}>
         <TouchableOpacity style={styles.saveButton} onPress={handleSaveAll}>
-          <Text style={styles.saveButtonText}>Save All</Text>
+          <Text style={styles.saveButtonText}>
+            {isEditMode ? 'Update Training' : 'Save All'}
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
           <Text style={styles.cancelButtonText}>Cancel</Text>

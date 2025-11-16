@@ -10,12 +10,14 @@ import AddExercisesScreen from '../screens/AddExercisesScreen';
 import AddTypeExerciseScreen from '../screens/AddTypeExerciseScreen';
 import EditPageScreen from '../screens/EditPageScreen';
 import TreinoScreen from '../screens/TreinoScreen';
+import MyTrainingScreen from '../screens/MyTrainingScreen';
 import ListaScreen from '../screens/ListaScreen';
 import DevScreen from '../screens/DevScreen';
-import type { RootTabParamList, AddStackParamList } from '../types/navigation';
+import type { RootTabParamList, AddStackParamList, TreinoStackParamList } from '../types/navigation';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const AddStack = createNativeStackNavigator<AddStackParamList>();
+const TreinoStack = createNativeStackNavigator<TreinoStackParamList>();
 
 function AddStackScreen() {
   return (
@@ -31,6 +33,20 @@ function AddStackScreen() {
       <AddStack.Screen name="EditPage" component={EditPageScreen} />
       <AddStack.Screen name="Details" component={DetailsScreen} />
     </AddStack.Navigator>
+  );
+}
+
+function TreinoStackScreen() {
+  return (
+    <TreinoStack.Navigator
+      initialRouteName="TreinoHome"
+      screenOptions={{
+        headerShown: false
+      }}
+    >
+      <TreinoStack.Screen name="TreinoHome" component={TreinoScreen} />
+      <TreinoStack.Screen name="MyTraining" component={MyTrainingScreen} />
+    </TreinoStack.Navigator>
   );
 }
 
@@ -60,7 +76,7 @@ export default function Navigation() {
         initialRouteName="Add"
       >
         <Tab.Screen name="Add" component={AddStackScreen} />
-        <Tab.Screen name="Treino" component={TreinoScreen} />
+        <Tab.Screen name="Treino" component={TreinoStackScreen} />
         <Tab.Screen name="Lista" component={ListaScreen} />
         <Tab.Screen name="Dev" component={DevScreen} />
 

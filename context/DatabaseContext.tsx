@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useSQLiteContext } from 'expo-sqlite';
-import { addItemAsync, getItemsAsync, updateItemAsync, deleteItemAsync, addTypeExercise, getTypeExercises, addExercise, getExercisesByTraining, addTraining, getTrainings, clearAll } from '../database/db';
+import { addItemAsync, getItemsAsync, updateItemAsync, deleteItemAsync, addTypeExercise, getTypeExercises, addExercise, updateExercise, deleteExercise, getExercisesByTraining, addTraining, getTrainings, getTrainingById, addTrainingHistory, clearAll } from '../database/db';
 import type { Item, TypeExercise, Exercise, Training } from '../types/database';
 
 interface DatabaseContextType {
@@ -13,9 +13,13 @@ interface DatabaseContextType {
   addTypeExercise: (name: string, slug: string) => Promise<number | null>;
   getTypeExercises: () => Promise<TypeExercise[]>;
   addExercise: (exercise: Exercise) => Promise<void>;
+  updateExercise: (id: number, exercise: Partial<Exercise>) => Promise<void>;
+  deleteExercise: (id: number) => Promise<void>;
   getExercisesByTraining: (trainingId: number) => Promise<Exercise[]>;
   addTraining: (training: Training) => Promise<number | null>;
   getTrainings: () => Promise<Training[]>;
+  getTrainingById: (id: number) => Promise<Training | null>;
+  addTrainingHistory: (trainingId: number, date: string) => Promise<number | null>;
   
   // Dev utilities
   clearAll: () => Promise<void>;
@@ -48,6 +52,12 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     addExercise: async (exercise: Exercise) => {
       await addExercise(db, exercise);
     },
+    updateExercise: async (id: number, exercise: Partial<Exercise>) => {
+      await updateExercise(db, id, exercise);
+    },
+    deleteExercise: async (id: number) => {
+      await deleteExercise(db, id);
+    },
     getExercisesByTraining: async (trainingId: number) => {
       return await getExercisesByTraining(db, trainingId) ?? [];
     },
@@ -56,6 +66,12 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
     },
     getTrainings: async () => {
       return await getTrainings(db) ?? [];
+    },
+    getTrainingById: async (id: number) => {
+      return await getTrainingById(db, id);
+    },
+    addTrainingHistory: async (trainingId: number, date: string) => {
+      return await addTrainingHistory(db, trainingId, date);
     },
     clearAll: async () => {
       await clearAll(db);
